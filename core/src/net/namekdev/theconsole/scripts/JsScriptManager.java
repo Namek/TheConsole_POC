@@ -126,7 +126,7 @@ public class JsScriptManager {
 	 */
 	public Object runScopedJs(String code, Object[] args) {
 		tempArgs.args = args;
-		return jsEnv.eval("(function(args) {" + code + "})(TemporaryArgs.args)");
+		return jsEnv.eval("(function(args) {" + code + "})(Java.from(TemporaryArgs.args))");
 	}
 
 	public void findScriptNamesStartingWith(String namePart, Array<String> outNames) {
