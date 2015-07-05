@@ -15,10 +15,14 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.TreeMap;
 
+import net.namekdev.theconsole.utils.RecursiveWatcher;
+import net.namekdev.theconsole.utils.RecursiveWatcher.FileChangeEvent;
 import static java.nio.file.FileVisitResult.*;
 import static java.nio.file.StandardWatchEventKinds.*;
 
@@ -40,9 +44,6 @@ public class JsScriptManager {
 	protected ConsoleProxy console;
 
 	final Path scriptsWatchDir = Paths.get(System.getenv("AppData"), "TheConsole", "scripts");
-	private WatchService fileWatcher;
-	private WatchKey scriptsFolderWatchKey;
-	private Thread scriptsWatcherThread;
 	private PathMatcher scriptExtensionMatcher;
 
 	private final TemporaryArgs tempArgs;
@@ -73,11 +74,9 @@ public class JsScriptManager {
 		analyzeScriptsFolder(scriptsWatchDir);
 
 		try {
-			fileWatcher = fs.newWatchService();
-			scriptsFolderWatchKey = scriptsWatchDir.register(fileWatcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
 
-			scriptsWatcherThread = new Thread(new ScriptsFileWatcher());
-			scriptsWatcherThread.start();
+			final RecursiveWatcher watcher = new RecursiveWatcher(scriptsWatchDir, 500, new ScriptsFileWatcher());
+			watcher.start();
 		}
 		catch (IOException exc) {
 			console.error(exc.toString());
@@ -225,66 +224,22 @@ public class JsScriptManager {
 		public Object[] args;
 	}
 
-	class ScriptsFileWatcher implements Runnable {
-		public boolean running = true;
-
+	class ScriptsFileWatcher implements RecursiveWatcher.WatchListener {
 		@Override
-		public void run() {
-			while (running) {
-				if (!scriptsFolderWatchKey.isValid()) {
-					break;
+		public void onWatchEvents(Queue<FileChangeEvent> events) {
+			for (FileChangeEvent evt : events) {
+				Path fullPath = evt.parentFolderPath.resolve(evt.relativePath);
+
+				if (evt.eventType == ENTRY_CREATE) {
+					tryReadScriptFile(fullPath);
 				}
-
-				final List<WatchEvent<?>> events = scriptsFolderWatchKey.pollEvents();
-
-				for (WatchEvent<?> event : events) {
-					try {
-						WatchEvent.Kind<?> kind = event.kind();
-
-						if (kind == OVERFLOW) {
-				            continue;
-				        }
-
-						WatchEvent<Path> evt = (WatchEvent<Path>) event;
-						Path path = evt.context();
-						Path fullPath = scriptsWatchDir.resolve(path);
-
-						if (!scriptExtensionMatcher.matches(fullPath)) {
-							continue;
-						}
-
-
-						if (kind == ENTRY_CREATE) {
-							tryReadScriptFile(fullPath);
-						}
-						else if (kind == ENTRY_MODIFY) {
-							tryReadScriptFile(fullPath);
-						}
-						else if (kind == ENTRY_DELETE) {
-							console.log("Deleting: script " + path);
-							removeScriptByPath(fullPath);
-						}
-					}
-					catch (Exception exc) {
-						console.error(exc.toString());
-					}
+				else if (evt.eventType == ENTRY_MODIFY) {
+					tryReadScriptFile(fullPath);
 				}
-
-				// Reset the key -- this step is critical if you want to
-			    // receive further watch events.
-				if (!scriptsFolderWatchKey.reset()) {
-					break;
-				}
-
-				try {
-					Thread.currentThread().sleep(500);
-				}
-				catch (InterruptedException e) {
-					e.printStackTrace();
+				else if (evt.eventType == ENTRY_DELETE) {
+					removeScriptByPath(fullPath);
 				}
 			}
-
-			running = false;
 		}
 	}
 }
