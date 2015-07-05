@@ -92,21 +92,6 @@ public class TheConsole extends ApplicationAdapter {
 		jsUtils = new JsUtilsProvider(errorStream);
 		scriptManager = new JsScriptManager(jsUtils, new ConsoleProxy(consoleView));
 		new CommandLineService(consoleView, inputField, scriptManager);
-
-		initSampleScripts();
-	}
-
-	private void initSampleScripts() {
-		scriptManager
-			.put("currency", JsScript.create(scriptManager,
-				"var from = args[0]; var to = args[1]; var amount = args[2];" +
-				"var url = 'http://finance.yahoo.com/d/quotes.csv?e=.csv&f=sl1d1t1&s=' + from.toUpperCase() + to.toUpperCase() + '=X';" +
-				"var data = Utils.requestUrl(url);" +
-				"console.log(data.split(',')[1] * amount);"
-			))
-			.put("youtube", JsScript.create(scriptManager,
-				"Utils.openUrl('https://youtube.com/results?search_query=' + args[0])"
-			));
 	}
 
 	@Override

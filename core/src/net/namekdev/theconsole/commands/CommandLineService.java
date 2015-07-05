@@ -27,6 +27,7 @@ public class CommandLineService {
 	protected TextField inputField;
 	protected JsScriptManager scriptManager;
 
+
 	public CommandLineService(ConsoleView consoleView, TextField inputField, JsScriptManager scriptManager) {
 		this.consoleView = consoleView;
 		this.inputField = inputField;
