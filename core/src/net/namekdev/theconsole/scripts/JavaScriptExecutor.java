@@ -15,12 +15,12 @@ public class JavaScriptExecutor {
 	private Invocable invocable;
 	private Bindings engineBindings;
 
-	
+
 	public JavaScriptExecutor() {
 		engineManager = new ScriptEngineManager();
 		engine = engineManager.getEngineByName("nashorn");
 		invocable = (Invocable) engine;
-		
+
 		engine.put("JavaClass", (Function<String, Class>)
 			className -> {
 				try {
@@ -31,49 +31,50 @@ public class JavaScriptExecutor {
 				}
 			}
 		);
-		
+
 		engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
 		bindClass("System", System.class);
 	}
-	
+
 	public void bindClass(String variableName, Class<?> cls) {
 		bindClass(variableName, cls.getName());
 	}
-	
+
 	public void bindClass(String variableName, String classPath) {
 		try {
 			engine.eval("var " + variableName + " = JavaClass('" + classPath + "').static");
 		}
 		catch (ScriptException e) { }
 	}
-	
+
 	public void bindObject(String variableName, Object obj) {
 		try {
 			engineBindings.put(variableName, obj);
 		}
 		catch (Exception exc) { }
 	}
-	
+
 	public Object eval(String scriptCode) {
 		return eval(scriptCode, true);
 	}
-	
+
 	public Object eval(String scriptCode, boolean returnExceptionObject) {
 		Object ret = null;
 
 		try {
 			ret = engine.eval(scriptCode);
 		}
-		catch (ScriptException e) {
+		catch (Exception e) {
 			if (returnExceptionObject) {
 				ret = e;
 			}
-			else {
+
+			if (!(e instanceof ScriptException)) {
 				e.printStackTrace();
 			}
 		}
-		
+
 		return ret;
 	}
 }

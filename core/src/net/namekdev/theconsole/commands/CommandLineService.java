@@ -205,7 +205,12 @@ public class CommandLineService {
 
 					Object result = script.run(args.toArray(new String[args.size()]));
 					if (result != null) {
-						consoleView.addTextEntry(result + "");
+						if (result instanceof Exception) {
+							consoleView.addErrorEntry(result.toString());
+						}
+						else {
+							consoleView.addTextEntry(result + "");
+						}
 					}
 				}
 				else {
