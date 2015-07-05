@@ -181,7 +181,16 @@ public class CommandLineService {
 			}
 
 			if (!runAsJavaScript) {
-				String commandName = matcher.group(1);
+				String commandName = "";
+
+				for (int i = 1; i <= matcher.groupCount(); ++i) {
+					String group = matcher.group(i);
+
+					if (group != null && group.length() > commandName.length()) {
+						commandName = group;
+					}
+				}
+
 				ArrayList<String> args = new ArrayList<String>();
 
 				while (matcher.find()) {
