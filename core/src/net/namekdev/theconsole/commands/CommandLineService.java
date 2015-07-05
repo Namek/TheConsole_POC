@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.namekdev.theconsole.scripts.JsScript;
+import net.namekdev.theconsole.scripts.JsScriptManager;
 import net.namekdev.theconsole.view.ConsoleView;
 
 import com.badlogic.gdx.Input.Keys;
@@ -23,12 +25,12 @@ import com.badlogic.gdx.utils.Array;
 public class CommandLineService {
 	protected ConsoleView consoleView;
 	protected TextField inputField;
-	protected CommandManager commandManager;
+	protected JsScriptManager scriptManager;
 
-	public CommandLineService(ConsoleView consoleView, TextField inputField, CommandManager commandManager) {
+	public CommandLineService(ConsoleView consoleView, TextField inputField, JsScriptManager scriptManager) {
 		this.consoleView = consoleView;
 		this.inputField = inputField;
-		this.commandManager = commandManager;
+		this.scriptManager = scriptManager;
 
 		inputField.addListener(new KeyListener());
 	}
@@ -40,7 +42,7 @@ public class CommandLineService {
 
 		final Pattern paramRegex = Pattern.compile("(\\w+)|\"([^\"]*)\"|\'([^\"]*)\'|`([^\"]*)`");
 
-		Array<String> commandNames = new Array<>(true, commandManager.getCommandCount()*3);
+		Array<String> commandNames = new Array<>(true, scriptManager.getScriptCount()*3);
 		Actor lastAddedEntry = null;
 
 
@@ -107,7 +109,7 @@ public class CommandLineService {
 
 			// TODO search between aliases too
 			commandNames.size = 0;
-			commandManager.findCommandNamesStartingWith(namePart, commandNames);
+			scriptManager.findScriptNamesStartingWith(namePart, commandNames);
 
 			// Complete this command
 			if (commandNames.size == 1) {
@@ -147,7 +149,7 @@ public class CommandLineService {
 
 			// Just present command list
 			else {
-				final Array<String> allCommandNames = commandManager.getAllCommandNames();
+				final Array<String> allCommandNames = scriptManager.getAllScriptNames();
 				StringBuilder sb = new StringBuilder();
 
 				for (int i = 0; i < allCommandNames.size; ++i) {
@@ -195,12 +197,12 @@ public class CommandLineService {
 					args.add(parameterValue);
 				}
 
-				ICommand command = commandManager.get(commandName);
+				JsScript script = scriptManager.get(commandName);
 
-				if (command != null) {
+				if (script != null) {
 					// TODO validate arguments here
 
-					Object result = command.run(args.toArray(new String[args.size()]));
+					Object result = script.run(args.toArray(new String[args.size()]));
 					if (result != null) {
 						consoleView.addTextEntry(result + "");
 					}
@@ -213,7 +215,7 @@ public class CommandLineService {
 			if (runAsJavaScript) {
 				// script was not found, so try to execute it as pure JavaScript!
 //				consoleView.addErrorEntry("Command not found, running as JavaScript code...");
-				Object result = commandManager.runJs(fullCommand);
+				Object result = scriptManager.runJs(fullCommand);
 				consoleView.addTextEntry(result + "");
 			}
 		}

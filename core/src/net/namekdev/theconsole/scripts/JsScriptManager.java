@@ -1,13 +1,7 @@
-package net.namekdev.theconsole.commands;
+package net.namekdev.theconsole.scripts;
 
-import java.io.PrintWriter;
 import java.util.Map;
 import java.util.TreeMap;
-
-import net.namekdev.theconsole.scripts.ConsoleProxy;
-import net.namekdev.theconsole.scripts.JavaScriptExecutor;
-import net.namekdev.theconsole.scripts.JsScript;
-import net.namekdev.theconsole.scripts.JsUtilsProvider;
 
 import com.badlogic.gdx.utils.Array;
 
@@ -16,9 +10,9 @@ import com.badlogic.gdx.utils.Array;
  * @author Namek
  *
  */
-public class CommandManager {
-	private Map<String, ICommand> executables = new TreeMap<String, ICommand>();
-	private Array<String> executableNames = new Array<String>();
+public class JsScriptManager {
+	private Map<String, JsScript> scripts = new TreeMap<String, JsScript>();
+	private Array<String> scriptNames = new Array<String>();
 
 	protected JavaScriptExecutor jsEnv;
 	protected JsUtilsProvider jsUtils;
@@ -26,7 +20,7 @@ public class CommandManager {
 	private final TemporaryArgs tempArgs;
 
 
-	public CommandManager(JsUtilsProvider jsUtils, ConsoleProxy consoleProxy) {
+	public JsScriptManager(JsUtilsProvider jsUtils, ConsoleProxy consoleProxy) {
 		this.jsUtils = jsUtils;
 
 		tempArgs = new TemporaryArgs();
@@ -37,30 +31,30 @@ public class CommandManager {
 		jsEnv.bindObject("console", consoleProxy);
 	}
 
-	public ICommand get(String name) {
-		return executables.get(name);
+	public JsScript get(String name) {
+		return scripts.get(name);
 	}
 
-	public CommandManager put(String name, ICommand executable) {
-		executables.put(name, executable);
+	public JsScriptManager put(String name, JsScript script) {
+		scripts.put(name, script);
 
-		if (!executableNames.contains(name, false)) {
-			executableNames.add(name);
-			executableNames.sort();
+		if (!scriptNames.contains(name, false)) {
+			scriptNames.add(name);
+			scriptNames.sort();
 		}
 
 		return this;
 	}
 
-	public int getCommandCount() {
-		return executables.size();
+	public int getScriptCount() {
+		return scripts.size();
 	}
 
 	/**
 	 * Returns internal array for performance. Do not modify it!
 	 */
-	public Array<String> getAllCommandNames() {
-		return executableNames;
+	public Array<String> getAllScriptNames() {
+		return scriptNames;
 	}
 
 	/**
@@ -78,12 +72,12 @@ public class CommandManager {
 		return jsEnv.eval("(function(args) {" + code + "})(TemporaryArgs.args)");
 	}
 
-	public void findCommandNamesStartingWith(String namePart, Array<String> outNames) {
+	public void findScriptNamesStartingWith(String namePart, Array<String> outNames) {
 		if (namePart.length() == 0) {
 			return;
 		}
 
-		for (String scriptName : executableNames) {
+		for (String scriptName : scriptNames) {
 			if (scriptName.indexOf(namePart) == 0) {
 				outNames.add(scriptName);
 			}

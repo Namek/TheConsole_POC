@@ -30,4 +30,8 @@ public class ConsoleProxy {
 	public void error(String text) {
 		consoleView.addErrorEntry(text);
 	}
+
+	public void clear() {
+		consoleView.clearEntries();
+	}
 }

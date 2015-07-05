@@ -5,13 +5,9 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 
 import net.namekdev.theconsole.commands.CommandLineService;
-import net.namekdev.theconsole.commands.CommandManager;
-import net.namekdev.theconsole.commands.DummyCommand;
-import net.namekdev.theconsole.commands.basic.ClearScreenCommand;
-import net.namekdev.theconsole.commands.basic.ExecCommand;
-import net.namekdev.theconsole.commands.basic.HelpCommand;
 import net.namekdev.theconsole.scripts.ConsoleProxy;
 import net.namekdev.theconsole.scripts.JsScript;
+import net.namekdev.theconsole.scripts.JsScriptManager;
 import net.namekdev.theconsole.scripts.JsUtilsProvider;
 import net.namekdev.theconsole.view.ConsoleView;
 
@@ -29,7 +25,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class TheConsole extends ApplicationAdapter {
 	protected JsUtilsProvider jsUtils;
-	protected CommandManager commandManager;
+	protected JsScriptManager scriptManager;
 	protected PrintWriter errorStream;
 
 	SpriteBatch batch;
@@ -94,32 +90,21 @@ public class TheConsole extends ApplicationAdapter {
 		});
 
 		jsUtils = new JsUtilsProvider(errorStream);
-		commandManager = new CommandManager(jsUtils, new ConsoleProxy(consoleView));
-		new CommandLineService(consoleView, inputField, commandManager);
+		scriptManager = new JsScriptManager(jsUtils, new ConsoleProxy(consoleView));
+		new CommandLineService(consoleView, inputField, scriptManager);
 
-		initBasicCommands();
 		initSampleScripts();
 	}
 
-	private void initBasicCommands() {
-		commandManager
-			.put("help", new HelpCommand(consoleView))
-			.put("clear", new ClearScreenCommand(consoleView))
-			.put("exec", new ExecCommand(jsUtils, errorStream))
-			.put("set", new DummyCommand())
-			.put("setup", new DummyCommand())
-		;
-	}
-
 	private void initSampleScripts() {
-		commandManager
-			.put("currency", JsScript.create(commandManager,
+		scriptManager
+			.put("currency", JsScript.create(scriptManager,
 				"var from = args[0]; var to = args[1]; var amount = args[2];" +
 				"var url = 'http://finance.yahoo.com/d/quotes.csv?e=.csv&f=sl1d1t1&s=' + from.toUpperCase() + to.toUpperCase() + '=X';" +
 				"var data = Utils.requestUrl(url);" +
 				"console.log(data.split(',')[1] * amount);"
 			))
-			.put("youtube", JsScript.create(commandManager,
+			.put("youtube", JsScript.create(scriptManager,
 				"Utils.openUrl('https://youtube.com/results?search_query=' + args[0])"
 			));
 	}

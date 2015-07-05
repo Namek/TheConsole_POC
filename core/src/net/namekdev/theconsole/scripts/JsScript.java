@@ -1,33 +1,27 @@
 package net.namekdev.theconsole.scripts;
 
-import net.namekdev.theconsole.commands.CommandManager;
-import net.namekdev.theconsole.commands.ICommand;
 
 /**
- * This class doesn't have any intelligence since it's totally managed/modified by {@link CommandManager}.
+ * This class doesn't have any intelligence since it's totally managed/modified by {@link JsScriptManager}.
  *
  * @author Namek
- * @see CommandManager
+ * @see JsScriptManager
  */
-public class JsScript implements ICommand {
-	CommandManager manager;
+public class JsScript {
+	JsScriptManager manager;
 	String code;
 
-	JsScript(CommandManager manager) {
+	JsScript(JsScriptManager manager) {
 		this.manager = manager;
 	}
 
-	JsScript(CommandManager manager, String code) {
+	JsScript(JsScriptManager manager, String code) {
 		this.manager = manager;
 		this.code = code;
 	}
 
-	public static ICommand create(CommandManager manager, String code) {
+	public static JsScript create(JsScriptManager manager, String code) {
 		return new JsScript(manager, code);
-	}
-
-	public Object run() {
-		return run(EMPTY_ARGS);
 	}
 
 	public Object run(String[] args) {
