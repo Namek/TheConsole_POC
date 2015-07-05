@@ -27,11 +27,14 @@ public class CommandLineService {
 	protected TextField inputField;
 	protected JsScriptManager scriptManager;
 
+	protected CommandHistory history;
+
 
 	public CommandLineService(ConsoleView consoleView, TextField inputField, JsScriptManager scriptManager) {
 		this.consoleView = consoleView;
 		this.inputField = inputField;
 		this.scriptManager = scriptManager;
+		history = new CommandHistory();
 
 		inputField.addListener(new KeyListener());
 	}
@@ -45,6 +48,7 @@ public class CommandLineService {
 
 		Array<String> commandNames = new Array<>(true, scriptManager.getScriptCount()*3);
 		Actor lastAddedEntry = null;
+		String temporaryCommandName;
 
 
 		public boolean keyTyped (InputEvent event, char character) {
@@ -60,31 +64,74 @@ public class CommandLineService {
 					}
 					break;
 				}
+
 				case Keys.ENTER: {
-					final String fullCommand = inputField.getText();
+					final String fullCommand = getInput();
 
 					if (fullCommand.length() == 0) {
 						break;
 					}
 
 					consoleView.addInputEntry(fullCommand);
-					inputField.setText("");
+					setInput("");
 					tryExecuteCommand(fullCommand);
+					history.save(fullCommand);
 					lastAddedEntry = null;
+					temporaryCommandName = null;
+					history.resetPointer();
 					break;
 				}
+
 				case Keys.ESCAPE: {
-					inputField.setText("");
+					setInput("");
 					lastAddedEntry = null;
+
+					if (temporaryCommandName == null) {
+						history.resetPointer();
+					}
+					else {
+						temporaryCommandName = null;
+					}
+
 					break;
 				}
+
 				case Keys.BACKSPACE:
 				case Keys.FORWARD_DEL: //DELETE
 				{
-					if (inputField.getText().length() == 0) {
+					if (getInput().length() == 0) {
 						// forget old entry
 						lastAddedEntry = null;
 					}
+					break;
+				}
+
+				case Keys.UP: {
+					if (history.hasAny()) {
+						String input = getInput();
+
+						if (input.equals(history.getCurrent()))
+							history.morePast();
+						else {
+							temporaryCommandName = input;
+						}
+
+						setInput(history.getCurrent());
+					}
+
+					break;
+				}
+
+				case Keys.DOWN: {
+					if (history.hasAny()) {
+						if (history.lessPast()) {
+							setInput(temporaryCommandName != null ? temporaryCommandName : "");
+						}
+						else {
+							setInput(history.getCurrent());
+						}
+					}
+
 					break;
 				}
 			}
@@ -92,9 +139,18 @@ public class CommandLineService {
 			return true;
 		}
 
+		void setInput(String text) {
+			inputField.setText(text);
+			inputField.setCursorPosition(text.length());
+		}
+
+		String getInput() {
+			return inputField.getText();
+		}
+
 		int countSpacesInInput() {
 			int count = 0;
-			String str = inputField.getText();
+			String str = getInput();
 
 			for (int i = 0, n = str.length(); i < n; ++i) {
 				if (str.charAt(i) == SPACE_CHAR) {
@@ -106,7 +162,7 @@ public class CommandLineService {
 		}
 
 		void tryCompleteCommandName() {
-			String namePart = inputField.getText();
+			String namePart = getInput();
 
 			// TODO search between aliases too
 			commandNames.size = 0;
@@ -116,17 +172,15 @@ public class CommandLineService {
 			if (commandNames.size == 1) {
 				// complete to this one
 				String commandName = commandNames.get(0);
-				inputField.setText(commandName);
-				inputField.setCursorPosition(commandName.length());
+				setInput(commandName);
 			}
 
 			// Complete to the common part and show options to continue
 			else if (commandNames.size > 1) {
 				// TODO complete to the common part
 				String commonPart = findBiggestCommonPart(commandNames);
-				if (commonPart.length() > 0 && !inputField.getText().equals(commonPart)) {
-					inputField.setText(commonPart);
-					inputField.setCursorPosition(commonPart.length());
+				if (commonPart.length() > 0 && !getInput().equals(commonPart)) {
+					setInput(commonPart);
 				}
 				else {
 					// Present options
