@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import net.namekdev.theconsole.TheConsole;
+import net.namekdev.theconsole.view.INativeWindowController;
 
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
@@ -79,7 +80,7 @@ public class DesktopLauncher implements NativeKeyListener {
 		config.width = 1920;
 		config.height = 600;
 
-		app = new LwjglApplication(new TheConsole(), config);
+		app = new LwjglApplication(new TheConsole(new NativeWindowController()), config);
 		display_impl = getFieldAsObject(Display.class, "display_impl");
 		window = new Window(display_impl);
 
@@ -189,5 +190,20 @@ public class DesktopLauncher implements NativeKeyListener {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+
+	class NativeWindowController implements INativeWindowController {
+
+		@Override
+		public void setVisible(boolean visible) {
+			DesktopLauncher.this.setVisible(visible);
+		}
+
+		@Override
+		public boolean isVisible() {
+			return !isHidden;
+		}
+
 	}
 }

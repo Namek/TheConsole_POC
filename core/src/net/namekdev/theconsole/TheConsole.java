@@ -6,10 +6,10 @@ import java.io.PrintWriter;
 
 import net.namekdev.theconsole.commands.CommandLineService;
 import net.namekdev.theconsole.scripts.ConsoleProxy;
-import net.namekdev.theconsole.scripts.JsScript;
 import net.namekdev.theconsole.scripts.JsScriptManager;
 import net.namekdev.theconsole.scripts.JsUtilsProvider;
 import net.namekdev.theconsole.view.ConsoleView;
+import net.namekdev.theconsole.view.INativeWindowController;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -24,6 +24,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextField;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class TheConsole extends ApplicationAdapter {
+	protected INativeWindowController windowController;
 	protected JsUtilsProvider jsUtils;
 	protected JsScriptManager scriptManager;
 	protected PrintWriter errorStream;
@@ -43,6 +44,10 @@ public class TheConsole extends ApplicationAdapter {
 	Stage stage;
 	ConsoleView consoleView;
 
+
+	public TheConsole(INativeWindowController windowController) {
+		this.windowController = windowController;
+	}
 
 	@Override
 	public void resize(int width, int height) {
@@ -90,7 +95,7 @@ public class TheConsole extends ApplicationAdapter {
 		});
 
 		jsUtils = new JsUtilsProvider(errorStream);
-		scriptManager = new JsScriptManager(jsUtils, new ConsoleProxy(consoleView));
+		scriptManager = new JsScriptManager(jsUtils, new ConsoleProxy(consoleView, windowController));
 		new CommandLineService(consoleView, inputField, scriptManager);
 	}
 

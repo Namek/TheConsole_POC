@@ -3,14 +3,17 @@ package net.namekdev.theconsole.scripts;
 import com.badlogic.gdx.graphics.Color;
 
 import net.namekdev.theconsole.view.ConsoleView;
+import net.namekdev.theconsole.view.INativeWindowController;
 
 public class ConsoleProxy {
 	private ConsoleView consoleView;
 	private final Color tmpColor = new Color();
+	private INativeWindowController windowController;
 
 
-	public ConsoleProxy(ConsoleView consoleView) {
+	public ConsoleProxy(ConsoleView consoleView, INativeWindowController windowController) {
 		this.consoleView = consoleView;
+		this.windowController = windowController;
 	}
 
 	public void log(String text) {
@@ -33,5 +36,9 @@ public class ConsoleProxy {
 
 	public void clear() {
 		consoleView.clearEntries();
+	}
+
+	public void hide() {
+		windowController.setVisible(false);
 	}
 }
