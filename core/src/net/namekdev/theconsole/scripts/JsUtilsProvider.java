@@ -19,6 +19,12 @@ public class JsUtilsProvider {
 	}
 
 	public String requestUrl(String url, String method) {
+		if (url.indexOf(' ') >= 0) {
+			errorStream.println("Utils.requestUrl() received url containing spaces. Use encodeURI() !");
+			errorStream.flush();
+			return null;
+		}
+
 		try {
 			URL obj = new URL(url);
 			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
@@ -76,6 +82,12 @@ public class JsUtilsProvider {
 	}
 
 	public void openUrl(String url) {
+		if (url.indexOf(' ') >= 0) {
+			errorStream.println("Utils.requestUrl() received url containing spaces. Use encodeURI() !");
+			errorStream.flush();
+			return;
+		}
+
 		Desktop desktop = Desktop.getDesktop();
         try {
             desktop.browse(new URI(url));

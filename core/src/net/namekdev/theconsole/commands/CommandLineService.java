@@ -9,6 +9,7 @@ import net.namekdev.theconsole.scripts.JsScriptManager;
 import net.namekdev.theconsole.view.ConsoleView;
 
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
@@ -28,13 +29,16 @@ public class CommandLineService {
 	protected JsScriptManager scriptManager;
 
 	protected CommandHistory history;
+	protected AliasManager aliasManager;
 
 
 	public CommandLineService(ConsoleView consoleView, TextField inputField, JsScriptManager scriptManager) {
 		this.consoleView = consoleView;
 		this.inputField = inputField;
 		this.scriptManager = scriptManager;
+
 		history = new CommandHistory();
+		aliasManager = new AliasManager();
 
 		inputField.addListener(new KeyListener());
 	}
@@ -46,7 +50,7 @@ public class CommandLineService {
 
 		final Pattern paramRegex = Pattern.compile("(\\w+)|\"([^\"]*)\"|\'([^\"]*)\'|`([^\"]*)`");
 
-		Array<String> commandNames = new Array<>(true, scriptManager.getScriptCount()*3);
+		Array<String> commandNames = new Array<>(true, 100);
 		Actor lastAddedEntry = null;
 		String temporaryCommandName;
 
@@ -74,7 +78,7 @@ public class CommandLineService {
 
 					consoleView.addInputEntry(fullCommand);
 					setInput("");
-					tryExecuteCommand(fullCommand);
+					tryExecuteCommand(fullCommand, false);
 					history.save(fullCommand);
 					lastAddedEntry = null;
 					temporaryCommandName = null;
@@ -166,13 +170,16 @@ public class CommandLineService {
 
 			// TODO search between aliases too
 			commandNames.size = 0;
+			commandNames.ensureCapacity(scriptManager.getScriptCount() + aliasManager.getAliasCount());
 			scriptManager.findScriptNamesStartingWith(namePart, commandNames);
+			aliasManager.findAliasesStartingWith(namePart, commandNames);
 
 			// Complete this command
 			if (commandNames.size == 1) {
 				// complete to this one
 				String commandName = commandNames.get(0);
 				setInput(commandName);
+				lastAddedEntry = null;
 			}
 
 			// Complete to the common part and show options to continue
@@ -204,13 +211,19 @@ public class CommandLineService {
 
 			// Just present command list
 			else {
-				final Array<String> allCommandNames = scriptManager.getAllScriptNames();
+				final Array<String> allScriptNames = scriptManager.getAllScriptNames();
+				final Array<String> allAliasNames = aliasManager.getAllAliasNames();
+				commandNames.size = 0;
+				commandNames.addAll(allScriptNames);
+				commandNames.addAll(allAliasNames);
+				commandNames.sort();
+
 				StringBuilder sb = new StringBuilder();
 
-				for (int i = 0; i < allCommandNames.size; ++i) {
-					sb.append(allCommandNames.get(i));
+				for (int i = 0; i < commandNames.size; ++i) {
+					sb.append(commandNames.get(i));
 
-					if (i != allCommandNames.size-1) {
+					if (i != commandNames.size-1) {
 						sb.append(NEW_LINE_CHAR);
 					}
 				}
@@ -226,25 +239,29 @@ public class CommandLineService {
 		}
 
 		// TODO find between alias
-		void tryExecuteCommand(String fullCommand) {
+		void tryExecuteCommand(String fullCommand, boolean ignoreAliases) {
 			boolean runAsJavaScript = false;
 			Matcher matcher = paramRegex.matcher(fullCommand);
 
 			if (!matcher.find()) {
+				// Expression is so weird that cannot be a command, try to run it as JS code.
 				runAsJavaScript = true;
 			}
-
-			if (!runAsJavaScript) {
+			else {
+				// Read command name
 				String commandName = "";
+				int commandNameEndIndex = -1;
 
 				for (int i = 1; i <= matcher.groupCount(); ++i) {
 					String group = matcher.group(i);
 
 					if (group != null && group.length() > commandName.length()) {
 						commandName = group;
+						commandNameEndIndex = matcher.end(i);
 					}
 				}
 
+				// Read command arguments
 				ArrayList<String> args = new ArrayList<String>();
 
 				while (matcher.find()) {
@@ -261,6 +278,7 @@ public class CommandLineService {
 					args.add(parameterValue);
 				}
 
+				// Look for script of such name
 				JsScript script = scriptManager.get(commandName);
 
 				if (script != null) {
@@ -274,6 +292,18 @@ public class CommandLineService {
 						else {
 							consoleView.addTextEntry(result + "");
 						}
+					}
+				}
+				else if (!ignoreAliases) {
+					// There is no script named by `commandName` so look for aliases
+					String command = aliasManager.get(commandName);
+
+					if (command != null) {
+						String newFullCommand = command + fullCommand.substring(commandNameEndIndex);
+						tryExecuteCommand(newFullCommand, true);
+					}
+					else {
+						runAsJavaScript = true;
 					}
 				}
 				else {
