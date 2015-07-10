@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import net.namekdev.theconsole.scripts.IScript;
 import net.namekdev.theconsole.scripts.JsScript;
 import net.namekdev.theconsole.scripts.JsScriptManager;
+import net.namekdev.theconsole.scripts.ScriptAssertError;
 import net.namekdev.theconsole.view.ConsoleView;
 
 import com.badlogic.gdx.Input.Keys;
@@ -27,18 +29,18 @@ public class CommandLineService {
 	protected ConsoleView consoleView;
 	protected TextField inputField;
 	protected JsScriptManager scriptManager;
-
-	protected CommandHistory history;
 	protected AliasManager aliasManager;
 
+	protected CommandHistory history;
 
-	public CommandLineService(ConsoleView consoleView, TextField inputField, JsScriptManager scriptManager) {
+
+	public CommandLineService(ConsoleView consoleView, TextField inputField, JsScriptManager scriptManager, AliasManager aliasManager) {
 		this.consoleView = consoleView;
 		this.inputField = inputField;
 		this.scriptManager = scriptManager;
+		this.aliasManager = aliasManager;
 
 		history = new CommandHistory();
-		aliasManager = new AliasManager();
 
 		inputField.addListener(new KeyListener());
 	}
@@ -278,12 +280,25 @@ public class CommandLineService {
 				}
 
 				// Look for script of such name
-				JsScript script = scriptManager.get(commandName);
+				IScript script = scriptManager.get(commandName);
 
 				if (script != null) {
 					// TODO validate arguments here
 
-					Object result = script.run(args.toArray(new String[args.size()]));
+					Object result = null;
+					try {
+						result = script.run(args.toArray(new String[args.size()]));
+					}
+					catch (ScriptAssertError assertion) {
+						if (assertion.isError) {
+							consoleView.addErrorEntry(assertion.text);
+						}
+						else {
+							consoleView.addTextEntry(assertion.text);
+						}
+						result = null;
+					}
+
 					if (result != null) {
 						if (result instanceof Exception) {
 							consoleView.addErrorEntry(result.toString());

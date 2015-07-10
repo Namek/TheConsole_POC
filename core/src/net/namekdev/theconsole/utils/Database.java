@@ -29,6 +29,7 @@ import com.badlogic.gdx.utils.JsonWriter.OutputType;
  *
  */
 public class Database {
+	protected final String ALIASES_SECTION = "aliases";
 	protected final String SCRIPTS_SECTION = "scripts";
 
 	private File file;
@@ -81,6 +82,10 @@ public class Database {
 		return getSection(content, section, createIfDoesntExist);
 	}
 
+	public SectionAccessor getAliasesSection() {
+		return getSection(ALIASES_SECTION, true);
+	}
+
 	public SectionAccessor getScriptsSection() {
 		return getSection(SCRIPTS_SECTION, true);
 	}
@@ -89,7 +94,7 @@ public class Database {
 		JsonValue tree = null;
 
 		if (createIfDoesntExist) {
-			tree = getOrCreateChild(root, section, ValueType.object);
+			tree = JsonUtils.getOrCreateChild(root, section, ValueType.object);
 		}
 		else {
 			tree = root.get(section);
@@ -98,30 +103,9 @@ public class Database {
 		return new SectionAccessor(tree);
 	}
 
-	private static JsonValue getOrCreateChild(JsonValue root, String key, ValueType type) {
-		JsonValue tree = root.get(key);
-
-		if (tree == null) {
-			tree = new JsonValue(type);
-			tree.setName(key);
-
-			if (root.size == 0) {
-				root.child = tree;
-			}
-			else {
-				JsonValue prev = root.get(root.size - 1);
-				prev.setNext(tree);
-				tree.setPrev(prev);
-			}
-
-			++root.size;
-		}
-
-		return tree;
-	}
 
 	public class SectionAccessor {
-		final JsonValue root;
+		public final JsonValue root;
 
 		SectionAccessor(JsonValue tree) {
 			this.root = tree;
@@ -132,11 +116,15 @@ public class Database {
 		}
 
 		public String get(String key) {
-			return root.has(key) ? root.get(key).asString() : null;
+			return get(key, false);
+		}
+
+		public String get(String key, boolean emptyStringIfDoesntExist) {
+			return root.has(key) ? root.get(key).asString() : (emptyStringIfDoesntExist ? "" : null);
 		}
 
 		public void set(String key, String value) {
-			JsonValue tree = getOrCreateChild(root, key, ValueType.stringValue);
+			JsonValue tree = JsonUtils.getOrCreateChild(root, key, ValueType.stringValue);
 			tree.set(value);
 		}
 

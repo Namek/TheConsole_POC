@@ -35,7 +35,7 @@ import com.badlogic.gdx.utils.Array;
 public class JsScriptManager {
 	private final String SCRIPT_FILE_EXTENSION = "js";
 
-	private Map<String, JsScript> scripts = new TreeMap<String, JsScript>();
+	private Map<String, IScript> scripts = new TreeMap<String, IScript>();
 	private Array<String> scriptNames = new Array<String>();
 
 	protected JavaScriptExecutor jsEnv;
@@ -91,28 +91,22 @@ public class JsScriptManager {
 
 		jsEnv.bindObject("assert", (BiConsumer<Boolean, String>)
 			(condition, error) -> {
-				if (!condition) {
-					throw new ScriptAssertError(error, true);
-				}
+				jsUtils.assertError(condition, error);
 			}
 		);
 
 		jsEnv.bindObject("assertInfo", (BiConsumer<Boolean, String>)
 			(condition, text) -> {
-				if (!condition) {
-					throw new ScriptAssertError(text, false);
-				}
+				jsUtils.assertInfo(condition, text);
 			}
 		);
-
-		jsEnv.bindClass("ScriptAssertError", ScriptAssertError.class);
 	}
 
-	public JsScript get(String name) {
+	public IScript get(String name) {
 		return scripts.get(name);
 	}
 
-	public JsScriptManager put(String name, JsScript script) {
+	public JsScriptManager put(String name, IScript script) {
 		scripts.put(name, script);
 
 		if (!scriptNames.contains(name, false)) {
@@ -143,21 +137,7 @@ public class JsScriptManager {
 	 * Run JavaScript code without creating any scope and getting any additional context.
 	 */
 	public Object runJs(String code) {
-		Object ret = null;
-		try {
-			ret = jsEnv.eval(code);
-		}
-		catch (ScriptAssertError assertion) {
-			if (assertion.isError) {
-				console.error(assertion.text);
-			}
-			else {
-				console.log(assertion.text);
-			}
-			ret = null;
-		}
-
-		return ret;
+		return jsEnv.eval(code);
 	}
 
 	/**
@@ -232,16 +212,19 @@ public class JsScriptManager {
 
 			// TODO try to pre-compile script for errors-check
 
-			JsScript script = get(scriptName);
+			IScript script = get(scriptName);
 
 			if (script == null) {
 				console.log("Loading script: " + scriptName);
 				script = new JsScript(this, scriptName, code);
 				put(scriptName, script);
 			}
-			else {
+			else if (script instanceof JsScript) {
 				console.log("Reloading script: " + scriptName);
-				script.code = code;
+				((JsScript) script).code = code;
+			}
+			else {
+				console.error("Cannot overwrite core script: " + scriptName);
 			}
 		}
 		catch (IOException exc) {

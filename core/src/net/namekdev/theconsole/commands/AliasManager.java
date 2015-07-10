@@ -3,15 +3,31 @@ package net.namekdev.theconsole.commands;
 import java.util.Map;
 import java.util.TreeMap;
 
+import net.namekdev.theconsole.utils.Database;
+
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
 
 public class AliasManager {
 	private Map<String, String> aliases = new TreeMap<String, String>();
 	private Array<String> aliasNames = new Array<String>();
 
 
-	public AliasManager() {
-		// TODO read saved aliases
+	public AliasManager(Database.SectionAccessor aliasStorage) {
+		JsonReader reader = new JsonReader();
+		JsonValue aliases = reader.parse(aliasStorage.root.asString());
+
+		if (aliases == null) {
+			// probably empty
+			return;
+		}
+
+		JsonValue node = aliases.child;
+		while (node != null) {
+			put(node.name, node.asString());
+			node = node.next;
+		}
 	}
 
 	public void put(String aliasName, String command) {

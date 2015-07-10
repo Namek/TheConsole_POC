@@ -1,13 +1,14 @@
 package net.namekdev.theconsole.scripts;
 
 
+
 /**
  * This class doesn't have any intelligence since it's totally managed/modified by {@link JsScriptManager}.
  *
  * @author Namek
  * @see JsScriptManager
  */
-public class JsScript {
+public class JsScript implements IScript {
 	JsScriptManager manager;
 	String name;
 	String code;
@@ -25,10 +26,6 @@ public class JsScript {
 
 	public Object run(String[] args) {
 		return manager.runScopedJs(this.code, args, context);
-	}
-
-	public Object run(String firstArgument) {
-		return run(new String[] { firstArgument });
 	}
 
 	public class Context {

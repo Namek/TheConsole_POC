@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import jdk.nashorn.internal.objects.NativeArray;
@@ -22,7 +23,7 @@ public class JsUtilsProvider {
 
 	/**
 	 * Joins strings by single space between and quoting args containing any space.
-	 * @param arr array of string
+	 * @param arr array of strings
 	 * @return joined quoted strings
 	 */
 	public String argsToString(NativeArray arr) {
@@ -42,6 +43,43 @@ public class JsUtilsProvider {
 			}
 
 			if (iter.hasNext()) {
+				sb.append(' ');
+			}
+		}
+
+		return sb.toString();
+	}
+
+	/**
+	 * Joins strings by single space between and quoting args containing any space.
+	 * @param arr array of strings
+	 * @return
+	 */
+	public String argsToString(String[] arr) {
+		return argsToString(arr, 0);
+	}
+
+	/**
+	 * Joins strings by single space between and quoting args containing any space.
+	 * @param arr array of strings
+	 * @return
+	 */
+	public String argsToString(String[] arr, int beginIndex) {
+		StringBuilder sb = new StringBuilder();
+
+		for (int i = beginIndex, n = arr.length; i < n; ++i) {
+			String arg = arr[i];
+
+			if (arg.length() == 0 || arg.indexOf(' ') >= 0) {
+				sb.append("\"");
+				sb.append(arg);
+				sb.append("\"");
+			}
+			else {
+				sb.append(arg);
+			}
+
+			if (i < n - 1) {
 				sb.append(' ');
 			}
 		}
@@ -126,5 +164,17 @@ public class JsUtilsProvider {
         catch (Exception e) {
             e.printStackTrace(errorStream);
         }
+	}
+
+	public void assertError(boolean condition, String error) {
+		if (!condition) {
+			throw new ScriptAssertError(error, true);
+		}
+	}
+
+	public void assertInfo(Boolean condition, String text) {
+		if (!condition) {
+			throw new ScriptAssertError(text, false);
+		}
 	}
 }
