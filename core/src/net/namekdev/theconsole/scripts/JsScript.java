@@ -9,26 +9,29 @@ package net.namekdev.theconsole.scripts;
  */
 public class JsScript {
 	JsScriptManager manager;
+	String name;
 	String code;
+	Context context;
 
-	JsScript(JsScriptManager manager) {
-		this.manager = manager;
-	}
 
-	JsScript(JsScriptManager manager, String code) {
+	JsScript(JsScriptManager manager, String name, String code) {
 		this.manager = manager;
+		this.name = name;
 		this.code = code;
-	}
 
-	public static JsScript create(JsScriptManager manager, String code) {
-		return new JsScript(manager, code);
+		context = new Context();
+		context.Storage = manager.createScriptStorage(name);
 	}
 
 	public Object run(String[] args) {
-		return manager.runScopedJs(this.code, args);
+		return manager.runScopedJs(this.code, args, context);
 	}
 
 	public Object run(String firstArgument) {
 		return run(new String[] { firstArgument });
+	}
+
+	public class Context {
+		public Object Storage;
 	}
 }

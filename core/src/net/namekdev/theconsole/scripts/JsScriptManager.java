@@ -20,6 +20,8 @@ import java.util.Queue;
 import java.util.TreeMap;
 import java.util.function.BiConsumer;
 
+import net.namekdev.theconsole.utils.Database;
+import net.namekdev.theconsole.utils.PathUtils;
 import net.namekdev.theconsole.utils.RecursiveWatcher;
 import net.namekdev.theconsole.utils.RecursiveWatcher.FileChangeEvent;
 
@@ -39,16 +41,20 @@ public class JsScriptManager {
 	protected JavaScriptExecutor jsEnv;
 	protected JsUtilsProvider jsUtils;
 	protected ConsoleProxy console;
+	protected Database settingsDatabase;
+	protected Database.SectionAccessor scriptsDatabase;
 
-	final Path scriptsWatchDir = Paths.get(System.getenv("AppData"), "TheConsole", "scripts");
+	final Path scriptsWatchDir = PathUtils.scriptsDir;
 	private PathMatcher scriptExtensionMatcher;
 
 	private final TemporaryArgs tempArgs;
 
 
-	public JsScriptManager(JsUtilsProvider jsUtils, ConsoleProxy console) {
+	public JsScriptManager(JsUtilsProvider jsUtils, ConsoleProxy console, Database database) {
 		this.jsUtils = jsUtils;
 		this.console = console;
+		this.settingsDatabase = database;
+		scriptsDatabase = settingsDatabase.getScriptsSection();
 
 		tempArgs = new TemporaryArgs();
 
@@ -134,7 +140,7 @@ public class JsScriptManager {
 	}
 
 	/**
-	 * Run JavaScript code without creating new scope.
+	 * Run JavaScript code without creating any scope and getting any additional context.
 	 */
 	public Object runJs(String code) {
 		Object ret = null;
@@ -155,11 +161,17 @@ public class JsScriptManager {
 	}
 
 	/**
-	 * Run JavaScript code in new scope.
+	 * Run JavaScript code in new scope within given context.
 	 */
-	public Object runScopedJs(String code, Object[] args) {
+	public Object runScopedJs(String code, Object[] args, Object context) {
 		tempArgs.args = args;
-		return runJs("(function(args) {" + code + "})(Java.from(TemporaryArgs.args))");
+		tempArgs.context = context;
+
+		return runJs("(function(args, Storage) {" + code + "})(Java.from(TemporaryArgs.args), TemporaryArgs.context.Storage)");
+	}
+
+	Database.SectionAccessor createScriptStorage(String name) {
+		return scriptsDatabase.getSection(name, true);
 	}
 
 	public void findScriptNamesStartingWith(String namePart, Array<String> outNames) {
@@ -178,7 +190,7 @@ public class JsScriptManager {
 		int diff = 0;
 
 		try {
-			console.log("Analyze folder structure for ." + SCRIPT_FILE_EXTENSION + " files: " + folder);
+			console.log("Analyzing folder structure for ." + SCRIPT_FILE_EXTENSION + " files: " + folder);
 
 			int scriptsCount = scriptNames.size;
 
@@ -224,7 +236,7 @@ public class JsScriptManager {
 
 			if (script == null) {
 				console.log("Loading script: " + scriptName);
-				script = new JsScript(this, code);
+				script = new JsScript(this, scriptName, code);
 				put(scriptName, script);
 			}
 			else {
@@ -255,6 +267,7 @@ public class JsScriptManager {
 
 	public static class TemporaryArgs {
 		public Object[] args;
+		public Object context;
 	}
 
 	class ScriptsFileWatcher implements RecursiveWatcher.WatchListener {

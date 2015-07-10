@@ -4,11 +4,13 @@ import java.awt.Desktop;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.Iterator;
+
+import jdk.nashorn.internal.objects.NativeArray;
 
 public class JsUtilsProvider {
 	protected PrintWriter errorStream;
@@ -16,6 +18,39 @@ public class JsUtilsProvider {
 
 	public JsUtilsProvider(PrintWriter printWriter) {
 		this.errorStream = printWriter;
+	}
+
+	/**
+	 * Joins strings by single space between and quoting args containing any space.
+	 * @param arr array of string
+	 * @return joined quoted strings
+	 */
+	public String argsToString(NativeArray arr) {
+		StringBuilder sb = new StringBuilder();
+
+		Iterator<Object> iter = arr.valueIterator();
+		while (iter.hasNext()) {
+			String arg = (String) iter.next();
+
+			if (arg.length() == 0 || arg.indexOf(' ') >= 0) {
+				sb.append("\"");
+				sb.append(arg);
+				sb.append("\"");
+			}
+			else {
+				sb.append(arg);
+			}
+
+			if (iter.hasNext()) {
+				sb.append(' ');
+			}
+		}
+
+		return sb.toString();
+	}
+
+	public String getClassName(Object obj) {
+		return obj.getClass().getName();
 	}
 
 	public String requestUrl(String url, String method) {
@@ -51,10 +86,6 @@ public class JsUtilsProvider {
 
 	public String requestUrl(String url) {
 		return requestUrl(url, "GET");
-	}
-
-	public String test() {
-		return "tested properly";
 	}
 
 	public void execAsync(String filepath) {

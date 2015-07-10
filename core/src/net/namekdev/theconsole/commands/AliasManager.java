@@ -12,10 +12,6 @@ public class AliasManager {
 
 	public AliasManager() {
 		// TODO read saved aliases
-
-		// TODO Test only
-		put("wiki", "wikipedia");
-		put("cls", "clear");
 	}
 
 	public void put(String aliasName, String command) {

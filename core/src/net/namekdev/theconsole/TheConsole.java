@@ -8,6 +8,8 @@ import net.namekdev.theconsole.commands.CommandLineService;
 import net.namekdev.theconsole.scripts.ConsoleProxy;
 import net.namekdev.theconsole.scripts.JsScriptManager;
 import net.namekdev.theconsole.scripts.JsUtilsProvider;
+import net.namekdev.theconsole.utils.Database;
+import net.namekdev.theconsole.utils.PathUtils;
 import net.namekdev.theconsole.view.ConsoleView;
 import net.namekdev.theconsole.view.INativeWindowController;
 
@@ -25,6 +27,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class TheConsole extends ApplicationAdapter {
 	protected INativeWindowController windowController;
+	protected Database database;
 	protected JsUtilsProvider jsUtils;
 	protected JsScriptManager scriptManager;
 	protected PrintWriter errorStream;
@@ -94,8 +97,9 @@ public class TheConsole extends ApplicationAdapter {
 			}
 		});
 
+		database = new Database(PathUtils.appSettingsDir + "/settings.db");
 		jsUtils = new JsUtilsProvider(errorStream);
-		scriptManager = new JsScriptManager(jsUtils, new ConsoleProxy(consoleView, windowController));
+		scriptManager = new JsScriptManager(jsUtils, new ConsoleProxy(consoleView, windowController), database);
 		new CommandLineService(consoleView, inputField, scriptManager);
 	}
 
