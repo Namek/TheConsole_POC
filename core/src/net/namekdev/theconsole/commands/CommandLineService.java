@@ -50,7 +50,7 @@ public class CommandLineService {
 		static final int SPACE_CHAR = 32;
 		static final char NEW_LINE_CHAR = '\n';
 
-		final Pattern paramRegex = Pattern.compile("(\\w+)|\"([^\"]*)\"|\'([^\"]*)\'|`([^\"]*)`");
+		final Pattern paramRegex = Pattern.compile("(\\w+)|\"([^\"]*)\"|\'([^']*)\'|`([^`]*)`");
 
 		Array<String> commandNames = new Array<>(true, 100);
 		Actor lastAddedEntry = null;
