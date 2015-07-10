@@ -11,6 +11,7 @@ import net.namekdev.theconsole.scripts.IScript;
 import net.namekdev.theconsole.scripts.JsScriptManager;
 import net.namekdev.theconsole.scripts.JsUtilsProvider;
 import net.namekdev.theconsole.scripts.core.AliasScript;
+import net.namekdev.theconsole.scripts.core.ExecScript;
 import net.namekdev.theconsole.utils.Database;
 import net.namekdev.theconsole.utils.PathUtils;
 import net.namekdev.theconsole.view.ConsoleView;
@@ -111,6 +112,7 @@ public class TheConsole extends ApplicationAdapter {
 
 		new CommandLineService(consoleView, inputField, scriptManager, aliasManager);
 		scriptManager.put("alias", new AliasScript(aliasManager, aliasStorage, jsUtils, consoleProxy));
+		scriptManager.put("exec", new ExecScript(jsUtils));
 	}
 
 	@Override
