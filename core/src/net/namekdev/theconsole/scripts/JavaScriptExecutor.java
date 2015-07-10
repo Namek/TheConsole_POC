@@ -20,8 +20,9 @@ public class JavaScriptExecutor {
 		engineManager = new ScriptEngineManager();
 		engine = engineManager.getEngineByName("nashorn");
 		invocable = (Invocable) engine;
+		engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
-		engine.put("JavaClass", (Function<String, Class>)
+		bindObject("JavaClass", (Function<String, Class<?>>)
 			className -> {
 				try {
 					return Class.forName(className);
@@ -31,8 +32,6 @@ public class JavaScriptExecutor {
 				}
 			}
 		);
-
-		engineBindings = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 
 		bindClass("System", System.class);
 	}
@@ -63,7 +62,7 @@ public class JavaScriptExecutor {
 		Object ret = null;
 
 		try {
-			ret = engine.eval(scriptCode);
+			ret = engine.eval(scriptCode, engineBindings);
 		}
 		catch (Exception e) {
 			if (returnExceptionObject) {

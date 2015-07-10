@@ -238,7 +238,6 @@ public class CommandLineService {
 			}
 		}
 
-		// TODO find between alias
 		void tryExecuteCommand(String fullCommand, boolean ignoreAliases) {
 			boolean runAsJavaScript = false;
 			Matcher matcher = paramRegex.matcher(fullCommand);
@@ -313,9 +312,14 @@ public class CommandLineService {
 
 			if (runAsJavaScript) {
 				// script was not found, so try to execute it as pure JavaScript!
-//				consoleView.addErrorEntry("Command not found, running as JavaScript code...");
 				Object result = scriptManager.runJs(fullCommand);
-				consoleView.addTextEntry(result + "");
+
+				if (result instanceof Exception) {
+					consoleView.addErrorEntry(result.toString());
+				}
+				else {
+					consoleView.addTextEntry(result + "");
+				}
 			}
 		}
 

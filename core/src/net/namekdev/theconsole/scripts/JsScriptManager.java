@@ -1,5 +1,8 @@
 package net.namekdev.theconsole.scripts;
 
+import static java.nio.file.FileVisitResult.CONTINUE;
+import static java.nio.file.StandardWatchEventKinds.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -11,20 +14,14 @@ import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
 
 import net.namekdev.theconsole.utils.RecursiveWatcher;
 import net.namekdev.theconsole.utils.RecursiveWatcher.FileChangeEvent;
-import static java.nio.file.FileVisitResult.*;
-import static java.nio.file.StandardWatchEventKinds.*;
 
 import com.badlogic.gdx.utils.Array;
 
@@ -55,10 +52,7 @@ public class JsScriptManager {
 
 		tempArgs = new TemporaryArgs();
 
-		jsEnv = new JavaScriptExecutor();
-		jsEnv.bindObject("Utils", jsUtils);
-		jsEnv.bindObject("TemporaryArgs", tempArgs);
-		jsEnv.bindObject("console", console);
+		createJsEnvironment();
 
 		final FileSystem fs = FileSystems.getDefault();
 		scriptExtensionMatcher = fs.getPathMatcher("glob:**/*." + SCRIPT_FILE_EXTENSION);
@@ -81,6 +75,31 @@ public class JsScriptManager {
 		catch (IOException exc) {
 			console.error(exc.toString());
 		}
+	}
+
+	private void createJsEnvironment() {
+		jsEnv = new JavaScriptExecutor();
+		jsEnv.bindObject("Utils", jsUtils);
+		jsEnv.bindObject("TemporaryArgs", tempArgs);
+		jsEnv.bindObject("console", console);
+
+		jsEnv.bindObject("assert", (BiConsumer<Boolean, String>)
+			(condition, error) -> {
+				if (!condition) {
+					throw new ScriptAssertError(error, true);
+				}
+			}
+		);
+
+		jsEnv.bindObject("assertInfo", (BiConsumer<Boolean, String>)
+			(condition, text) -> {
+				if (!condition) {
+					throw new ScriptAssertError(text, false);
+				}
+			}
+		);
+
+		jsEnv.bindClass("ScriptAssertError", ScriptAssertError.class);
 	}
 
 	public JsScript get(String name) {
@@ -118,7 +137,21 @@ public class JsScriptManager {
 	 * Run JavaScript code without creating new scope.
 	 */
 	public Object runJs(String code) {
-		return jsEnv.eval(code);
+		Object ret = null;
+		try {
+			ret = jsEnv.eval(code);
+		}
+		catch (ScriptAssertError assertion) {
+			if (assertion.isError) {
+				console.error(assertion.text);
+			}
+			else {
+				console.log(assertion.text);
+			}
+			ret = null;
+		}
+
+		return ret;
 	}
 
 	/**
@@ -126,7 +159,7 @@ public class JsScriptManager {
 	 */
 	public Object runScopedJs(String code, Object[] args) {
 		tempArgs.args = args;
-		return jsEnv.eval("(function(args) {" + code + "})(Java.from(TemporaryArgs.args))");
+		return runJs("(function(args) {" + code + "})(Java.from(TemporaryArgs.args))");
 	}
 
 	public void findScriptNamesStartingWith(String namePart, Array<String> outNames) {
