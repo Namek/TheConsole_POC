@@ -141,5 +141,11 @@ public class Database {
 		public SectionAccessor getSection(String section, boolean createIfDoesntExist) {
 			return Database.this.getSection(root, section, createIfDoesntExist);
 		}
+
+		// FIXME? This one's name doesn't fit in this local context but I didn't want to create
+		// some weird OOP templatish or compositional abstraction for it - for now. :)
+		public SectionAccessor getGlobalStorage(String storageName) {
+			return Database.this.getSection(content, storageName, true);
+		}
 	}
 }
