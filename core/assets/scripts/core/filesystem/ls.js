@@ -10,5 +10,7 @@ else {
 	path = Storage.get("path")
 }
 
+assert(!!path, "Path is invalid.")
+
 var file = new java.io.File(path)
 console.log(Java.from(file.list()).join('\n'))
