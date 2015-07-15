@@ -7,6 +7,8 @@ import java.lang.reflect.Method;
 
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.WinDef.HWND;
+import com.sun.jna.platform.win32.WinDef.POINT;
+import com.sun.jna.platform.win32.WinDef.RECT;
 import com.sun.jna.platform.win32.WinDef.UINT;
 
 public class Window {
@@ -17,6 +19,8 @@ public class Window {
 
 	private Method m_showWindow, m_setWindowLongPtr, m_getWindowLongPtr;
 	private Method m_setFocus, m_setWindowPos;
+
+	private RECT tmpRect = new RECT();
 
 	public static final int SW_HIDE = 0;
 	public static final int SW_SHOW = 5;
@@ -38,8 +42,8 @@ public class Window {
 	public static final long WS_EX_CLIENTEDGE = 0x00000200;
 	public static final long WS_EX_LAYERED = 0x00080000;
 	public static final int BM_CLICK = 0x00F5;
-	
-	
+
+
 	public Window(Object methodsSourceObject) {
 		src = methodsSourceObject;
 		srcClass = src.getClass();
@@ -49,21 +53,21 @@ public class Window {
 		m_setFocus = getMethod(srcClass, "setFocus");
 		m_setWindowPos = getMethod(srcClass, "setWindowPos");
 	}
-	
+
 	long getHwnd() {
 		if (hwnd == 0) {
 			try {
 				hwnd = getField(src, "hwnd").getLong(src);
 				_hwnd = new HWND(new Pointer(hwnd));
 			}
-			catch (Exception exc) { 
+			catch (Exception exc) {
 				exc.printStackTrace();
 			}
 		}
 
 		return hwnd;
 	}
-	
+
 	HWND getHwndObj() {
 		return _hwnd;
 	}
@@ -95,14 +99,14 @@ public class Window {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		return -1;
 	}
-	
+
 	public boolean setForegroundWindow() {
 		return User32Ext.INSTANCE.SetForegroundWindow(_hwnd).booleanValue();
 	}
-	
+
 	public void setFocus() {
 		try {
 			m_setFocus.invoke(src, getHwnd());
@@ -111,7 +115,7 @@ public class Window {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public boolean setWindowPos(long hwnd_after, int x, int y, int cx, int cy, long uflags) {
 		try {
 			return (Boolean) m_setWindowPos.invoke(src, getHwnd(), hwnd_after, x, y, cx, cy, uflags);
@@ -140,5 +144,20 @@ public class Window {
 	public void setSize(int width, int height) {
 		setWindowPos(0, -1, -1, width, height, SWP_NOOWNERZORDER | SWP_NOMOVE);
 	}
-	
+
+	public void setPosition(int x, int y) {
+		setWindowPos(0, x, y, -1, -1, SWP_NOOWNERZORDER | SWP_NOSIZE);
+	}
+
+	public void getPosition(POINT outPosition) {
+		User32Ext.INSTANCE.GetWindowRect(_hwnd, tmpRect);
+		outPosition.x = tmpRect.left;
+		outPosition.y = tmpRect.top;
+	}
+
+	public void getSize(POINT outSize) {
+		User32Ext.INSTANCE.GetWindowRect(_hwnd, tmpRect);
+		outSize.x = tmpRect.right - tmpRect.left;
+		outSize.y = tmpRect.bottom - tmpRect.top;
+	}
 }

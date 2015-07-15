@@ -32,6 +32,7 @@ import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef.DWORD;
 import com.sun.jna.platform.win32.WinDef.LONG;
+import com.sun.jna.platform.win32.WinDef.POINT;
 import com.sun.jna.platform.win32.WinDef.UINT;
 import com.sun.jna.platform.win32.WinUser.INPUT;
 
@@ -194,6 +195,7 @@ public class DesktopLauncher implements NativeKeyListener {
 
 
 	class NativeWindowController implements INativeWindowController {
+		POINT point = new POINT();
 
 		@Override
 		public void setVisible(boolean visible) {
@@ -203,6 +205,50 @@ public class DesktopLauncher implements NativeKeyListener {
 		@Override
 		public boolean isVisible() {
 			return !isHidden;
+		}
+
+		@Override
+		public void setPosition(int x, int y) {
+			window.setPosition(x, y);
+		}
+
+		@Override
+		public int getX() {
+			window.getPosition(point);
+			return point.x;
+		}
+
+		@Override
+		public int getY() {
+			window.getPosition(point);
+			return point.y;
+		}
+
+		@Override
+		public void setSize(int width, int height) {
+			window.setSize(width, height);
+		}
+
+		@Override
+		public int getWidth() {
+			window.getSize(point);
+			return point.x;
+		}
+
+		@Override
+		public int getHeight() {
+			window.getSize(point);
+			return point.y;
+		}
+
+		@Override
+		public int getScreenWidth() {
+			return Gdx.graphics.getDesktopDisplayMode().width;
+		}
+
+		@Override
+		public int getScreenHeight() {
+			return Gdx.graphics.getDesktopDisplayMode().height;
 		}
 
 	}

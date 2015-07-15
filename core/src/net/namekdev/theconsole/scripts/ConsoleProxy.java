@@ -8,12 +8,13 @@ import net.namekdev.theconsole.view.INativeWindowController;
 public class ConsoleProxy {
 	private ConsoleView consoleView;
 	private final Color tmpColor = new Color();
-	private INativeWindowController windowController;
+
+	public INativeWindowController window;
 
 
 	public ConsoleProxy(ConsoleView consoleView, INativeWindowController windowController) {
 		this.consoleView = consoleView;
-		this.windowController = windowController;
+		this.window = windowController;
 	}
 
 	public void log(String text) {
@@ -39,6 +40,6 @@ public class ConsoleProxy {
 	}
 
 	public void hide() {
-		windowController.setVisible(false);
+		window.setVisible(false);
 	}
 }

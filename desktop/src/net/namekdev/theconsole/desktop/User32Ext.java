@@ -7,13 +7,13 @@ import com.sun.jna.win32.StdCallLibrary;
 
 public interface User32Ext extends StdCallLibrary, WinUser, WinNT {
 	User32Ext INSTANCE = (User32Ext) Native.loadLibrary("user32", User32Ext.class);
-	
+
 	HWND SetActiveWindow(HWND hwnd);
 
 	BOOL SendNotifyMessageW(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
-	
+
 	UINT SendInput(UINT nInputs, INPUT pInputs, int cbSize);
-	
+
 	BOOL BringWindowToTop(HWND hwnd);
 
 	void SwitchToThisWindow(HWND hwnd, BOOL fAltTab);
@@ -25,4 +25,6 @@ public interface User32Ext extends StdCallLibrary, WinUser, WinNT {
 	LRESULT SendMessageW(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	LRESULT PostMessageW(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+	BOOL GetWindowRect(HWND hWnd, RECT lpRect);
 }
