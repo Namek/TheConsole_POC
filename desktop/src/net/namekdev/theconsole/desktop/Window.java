@@ -2,6 +2,7 @@ package net.namekdev.theconsole.desktop;
 
 import static net.namekdev.theconsole.desktop.ReflectUtils.getField;
 import static net.namekdev.theconsole.desktop.ReflectUtils.getMethod;
+import static net.namekdev.theconsole.desktop.User32Ext.*;
 
 import java.lang.reflect.Method;
 
@@ -21,27 +22,9 @@ public class Window {
 	private Method m_setFocus, m_setWindowPos;
 
 	private RECT tmpRect = new RECT();
-
-	public static final int SW_HIDE = 0;
-	public static final int SW_SHOW = 5;
-	public static final int SW_SHOWNORMAL = 1;
-	public static final int SW_RESTORE = 9;
-	public static final int SWP_SHOWWINDOW = 0x0040;
-	public static final int SWP_NOSIZE = 0x0001;
-	public static final int SWP_NOMOVE = 0x0002;
-	public static final int SWP_NOOWNERZORDER = 0x0200;
-	public static final int HWND_TOP = 0;
-	public static final int HWND_TOPMOST = -1;
-	public static final int GWL_STYLE = -16;
-	public static final int GWL_EXSTYLE = -20;
-	public static final int WS_VISIBLE = 0x10000000;
-	public static final int WS_EX_TOOLWINDOW = 0x00000080;
-	public static final int WS_EX_APPWINDOW = 0x40000;
-	public static final long WS_EX_NOACTIVATE = 0x08000000L;
-	public static final long WS_EX_TOPMOST = 0x00000008L;
-	public static final long WS_EX_CLIENTEDGE = 0x00000200;
-	public static final long WS_EX_LAYERED = 0x00080000;
-	public static final int BM_CLICK = 0x00F5;
+	private DWORD tmpDWord = new DWORD(0);
+	private DWORD tmpDWord2 = new DWORD(0);
+	private BYTE tmpByte = new BYTE(0);
 
 
 	public Window(Object methodsSourceObject) {
@@ -159,5 +142,20 @@ public class Window {
 		User32Ext.INSTANCE.GetWindowRect(_hwnd, tmpRect);
 		outSize.x = tmpRect.right - tmpRect.left;
 		outSize.y = tmpRect.bottom - tmpRect.top;
+	}
+
+	/**
+	 * @param opacity value in range: 0 to 255
+	 */
+	public void setOpacity(int opacity) {
+		tmpDWord2.setValue(LWA_ALPHA);
+		tmpByte.setValue(opacity);
+		User32Ext.INSTANCE.SetLayeredWindowAttributes(_hwnd, tmpDWord, tmpByte, tmpDWord2);
+	}
+
+	public short getOpacity() {
+		tmpDWord2.setValue(LWA_ALPHA);
+		User32Ext.INSTANCE.GetLayeredWindowAttributes(_hwnd, tmpDWord, tmpByte, tmpDWord2);
+		return tmpByte.shortValue();
 	}
 }

@@ -14,4 +14,7 @@ public interface INativeWindowController {
 
 	public int getScreenWidth();
 	public int getScreenHeight();
+
+	public short getOpacity();
+	public void setOpacity(short opacity);
 }

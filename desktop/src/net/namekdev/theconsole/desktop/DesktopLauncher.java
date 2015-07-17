@@ -1,13 +1,7 @@
 package net.namekdev.theconsole.desktop;
 
 import static net.namekdev.theconsole.desktop.ReflectUtils.getFieldAsObject;
-import static net.namekdev.theconsole.desktop.Window.GWL_EXSTYLE;
-import static net.namekdev.theconsole.desktop.Window.GWL_STYLE;
-import static net.namekdev.theconsole.desktop.Window.SW_HIDE;
-import static net.namekdev.theconsole.desktop.Window.WS_EX_LAYERED;
-import static net.namekdev.theconsole.desktop.Window.WS_EX_TOOLWINDOW;
-import static net.namekdev.theconsole.desktop.Window.WS_EX_TOPMOST;
-import static net.namekdev.theconsole.desktop.Window.WS_VISIBLE;
+import static net.namekdev.theconsole.desktop.User32Ext.*;
 
 import java.lang.reflect.Field;
 import java.util.Timer;
@@ -37,8 +31,8 @@ import com.sun.jna.platform.win32.WinDef.UINT;
 import com.sun.jna.platform.win32.WinUser.INPUT;
 
 public class DesktopLauncher implements NativeKeyListener {
-	public static void main (String[] arg) {
-		new DesktopLauncher();
+	public static void main (String[] args) {
+		new DesktopLauncher(args.length > 0 && args[0].equals("--show"));
 	}
 
 	LwjglApplicationConfiguration config;
@@ -50,7 +44,7 @@ public class DesktopLauncher implements NativeKeyListener {
 	Window window;
 
 
-	public DesktopLauncher() {
+	public DesktopLauncher(boolean setVisibleOnStart) {
 		Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
 		logger.setLevel(Level.WARNING);
 
@@ -88,9 +82,14 @@ public class DesktopLauncher implements NativeKeyListener {
 		timer.schedule(new TimerTask() {
 			public void run() {
 				window.showWindow(SW_HIDE); // hide the window
+
+				// set as visible and then hide again to hide app from task bar
 				window.setWindowLong(GWL_STYLE, User32.WS_POPUP | WS_VISIBLE);
-				window.setWindowLong(GWL_EXSTYLE, WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_TOPMOST);
 				window.showWindow(SW_HIDE);
+
+				window.setWindowLong(GWL_EXSTYLE, window.getWindowLong(GWL_EXSTYLE) | WS_EX_LAYERED | WS_EX_TOOLWINDOW | WS_EX_TOPMOST);
+				window.setOpacity(255);
+
 				isHidden = true;
 
 				DisplayMode[] modes = Gdx.graphics.getDisplayModes();
@@ -105,12 +104,14 @@ public class DesktopLauncher implements NativeKeyListener {
 			}
 		}, 100);
 
-		timer.schedule(new TimerTask() {
-			@Override
-			public void run() {
-				setVisible(true);
-			}
-		}, 1000);
+		if (setVisibleOnStart) {
+			timer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					setVisible(true);
+				}
+			}, 1000);
+		}
 	}
 
 	private void setVisible(boolean show) {
@@ -249,6 +250,16 @@ public class DesktopLauncher implements NativeKeyListener {
 		@Override
 		public int getScreenHeight() {
 			return Gdx.graphics.getDesktopDisplayMode().height;
+		}
+
+		@Override
+		public short getOpacity() {
+			return (short) window.getOpacity();
+		}
+
+		@Override
+		public void setOpacity(short opacity) {
+			window.setOpacity(opacity);
 		}
 
 	}
