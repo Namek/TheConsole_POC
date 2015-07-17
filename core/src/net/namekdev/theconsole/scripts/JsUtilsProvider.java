@@ -8,13 +8,15 @@ import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Iterator;
 
+import net.namekdev.theconsole.utils.AudioFilePlayer;
 import jdk.nashorn.internal.objects.NativeArray;
 
 public class JsUtilsProvider {
-	protected PrintWriter errorStream;
+	private PrintWriter errorStream;
+
+	public final AudioFilePlayer audioFilePlayer = new AudioFilePlayer();
 
 
 	public JsUtilsProvider(PrintWriter printWriter) {
