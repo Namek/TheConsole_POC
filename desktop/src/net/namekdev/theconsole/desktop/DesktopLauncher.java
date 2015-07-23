@@ -68,12 +68,12 @@ public class DesktopLauncher implements NativeKeyListener {
 		config.x = 0;
 		config.y = 0;
 		config.resizable = false;
-		config.backgroundFPS = 120;
-		config.foregroundFPS = 120;
-//		config.allowSoftwareMode = true;
+		config.backgroundFPS = 45;
+		config.foregroundFPS = 45;
+		config.allowSoftwareMode = true;
 		config.title = "The Console";
-		config.width = 1920;
-		config.height = 600;
+		config.width = 1;
+		config.height = 1;
 
 		app = new LwjglApplication(new TheConsole(new NativeWindowController()), config);
 		display_impl = getFieldAsObject(Display.class, "display_impl");
@@ -92,6 +92,8 @@ public class DesktopLauncher implements NativeKeyListener {
 
 				isHidden = true;
 
+				// Find the biggest resolution (assuming it's currently active)
+				// TODO: do it before creating window, Gdx.graphics will not be available, so use JNA.
 				DisplayMode[] modes = Gdx.graphics.getDisplayModes();
 				DisplayMode biggestMode = modes[0];
 				for (DisplayMode mode : modes) {
@@ -134,6 +136,8 @@ public class DesktopLauncher implements NativeKeyListener {
 						int MOUSEEVENTF_LEFTUP = 0x4;
 						input = new INPUT();
 						input.type = new DWORD(INPUT_MOUSE);
+
+						// TODO get current position
 						input.input.mi.dx = new LONG(config.x + 10);
 						input.input.mi.dy = new LONG(config.y + 10);
 						input.input.mi.dwFlags = new DWORD(MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP);

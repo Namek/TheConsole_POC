@@ -63,6 +63,9 @@ public class TheConsole extends ApplicationAdapter {
 		consoleView.invalidateHierarchy();
 
 	    stage.getViewport().update(width, height, true);
+	    batch.getProjectionMatrix().setToOrtho2D(0, 0, width, height);
+	    shapes.getProjectionMatrix().setToOrtho2D(0, 0, width, height);
+	    shapes.updateMatrices();
 	}
 
 	@Override
@@ -117,10 +120,14 @@ public class TheConsole extends ApplicationAdapter {
 
 	@Override
 	public void render () {
+		if (!windowController.isVisible()) {
+			return;
+		}
+
 		Gdx.gl.glClearColor(1, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		float delta = Gdx.graphics.getDeltaTime();
+		float delta = Math.min(1/15f, Gdx.graphics.getDeltaTime());
 		progress += delta * SPEED;
 		progress2 += delta * SPEED2;
 

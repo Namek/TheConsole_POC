@@ -39,8 +39,6 @@ import java.util.logging.Logger;
  * @author Namek
  */
 public class RecursiveWatcher {
-	private static final Logger logger = Logger.getLogger(RecursiveWatcher.class.getSimpleName());
-
 	private Path root;
 	private int settleDelay;
 	private WatchListener listener;
@@ -157,8 +155,6 @@ public class RecursiveWatcher {
 	}
 
 	private synchronized void resetWaitSettlementTimer() {
-		logger.log(Level.FINE, "File system events registered. Waiting " + settleDelay + "ms for settlement ....");
-
 		if (timer != null) {
 			timer.cancel();
 			timer = null;
@@ -168,7 +164,6 @@ public class RecursiveWatcher {
 		timer.schedule(new TimerTask() {
 			@Override
 			public void run() {
-				logger.log(Level.INFO, "File system actions (on watched folders) settled. Updating watches ...");
 				walkTreeAndSetWatches();
 				unregisterStaleWatches();
 
@@ -178,8 +173,6 @@ public class RecursiveWatcher {
 	}
 
 	private synchronized void walkTreeAndSetWatches() {
-		logger.log(Level.INFO, "Registering new folders at watch service ...");
-
 		try {
 			Files.walkFileTree(root, new FileVisitor<Path>() {
 				@Override
@@ -218,8 +211,6 @@ public class RecursiveWatcher {
 		}
 
 		if (stalePaths.size() > 0) {
-			logger.log(Level.INFO, "Cancelling stale path watches ...");
-
 			for (Path stalePath : stalePaths) {
 				unregisterWatch(stalePath);
 			}
@@ -228,8 +219,6 @@ public class RecursiveWatcher {
 
 	private synchronized void registerWatch(Path dir) {
 		if (!pathToWatchKeyMap.containsKey(dir)) {
-			logger.log(Level.INFO, "- Registering " + dir);
-
 			try {
 				WatchKey watchKey = dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW);
 				pathToWatchKeyMap.put(dir, watchKey);
@@ -243,8 +232,6 @@ public class RecursiveWatcher {
 		WatchKey watchKey = pathToWatchKeyMap.get(dir);
 
 		if (watchKey != null) {
-			logger.log(Level.INFO, "- Cancelling " + dir);
-
 			watchKey.cancel();
 			pathToWatchKeyMap.remove(dir);
 			watchKeyToPathMap.remove(watchKey);
