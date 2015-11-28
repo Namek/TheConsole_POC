@@ -16,13 +16,14 @@ public class AliasManager {
 
 	public AliasManager(Database.SectionAccessor aliasStorage) {
 		JsonReader reader = new JsonReader();
-		JsonValue aliases = reader.parse(aliasStorage.root.asString());
+		JsonValue value = aliasStorage.root;
 
-		if (aliases == null) {
+		if (value.size == 0) {
 			// probably empty
 			return;
 		}
 
+		JsonValue aliases = reader.parse(value.asString());
 		JsonValue node = aliases.child;
 		while (node != null) {
 			put(node.name, node.asString());
