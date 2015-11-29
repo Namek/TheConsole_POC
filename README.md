@@ -5,12 +5,12 @@
 Wide-usage JavaScript-able Console for Windows OS, currently looking and animating like the one in Quake 3 Arena game. Currently made with libgdx and Java 8.
 
 Features:
-* custom scripts
-* aliasing commands
+* custom scripts to be called as commands
+* command aliasing
 * auto-reloading of scripts when script file is modified
-* command invoke history like in bash
-* one-line JavaScript code runnable directly in shell (do some math or whatever)
-* JSON configuration
+* command invoke history like in bash (keys UP, DOWN)
+* run one-line JavaScript code directly in shell (do some math or whatever)
+* separated JSON configuration for every script
 
 ### How to use?
 
@@ -36,6 +36,11 @@ https://docs.oracle.com/javase/8/docs/technotes/guides/scripting/nashorn/api.htm
 args.length
 args[0], args[1], ...
 Utils.audioFilePlayer.play(filePath)
+Utils.exec(filePath)
+Utils.execAsync(filePath)
+Utils.getClassName(object)
+Utils.openUrl(encodeURI(someUrl))
+Utils.requestUrl(url) //HTTP GET
 console.log(text)
 console.log(text, color)
 console.error(text)
@@ -47,6 +52,12 @@ assertInfo(bool, string)
 JavaClass(className) // Java: Class.forName(className);
 System // Java: System.class
 ```
+
+Sources for globals:
+* `Utils` is placed in [JsUtilsProvider.java](src/net/namekdev/theconsole/scripts/JsUtilsProvider.java)
+* `console` is [ConsoleProxy.java](src/net/namekdev/theconsole/scripts/ConsoleProxy.java)
+* whole file script is lanched by [JsScriptManager.java#runScopedJs()](src/net/namekdev/theconsole/scripts/JsScriptManager.java)
+* Java->JavaScript bindings are made in [JsScriptManager#createJsEnvironment](src/net/namekdev/theconsole/scripts/JsScriptManager.java) [JavaScriptExecutor.java#ctor](src/net/namekdev/theconsole/scripts/JavaScriptExecutor.java)
 
 ### Script Storage
 
