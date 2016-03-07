@@ -54,10 +54,10 @@ System // Java: System.class
 ```
 
 Sources for globals:
-* `Utils` is placed in [JsUtilsProvider.java](src/net/namekdev/theconsole/scripts/JsUtilsProvider.java)
-* `console` is [ConsoleProxy.java](src/net/namekdev/theconsole/scripts/ConsoleProxy.java)
-* whole file script is lanched by [JsScriptManager.java#runScopedJs()](src/net/namekdev/theconsole/scripts/JsScriptManager.java)
-* Java->JavaScript bindings are made in [JsScriptManager#createJsEnvironment](src/net/namekdev/theconsole/scripts/JsScriptManager.java) [JavaScriptExecutor.java#ctor](src/net/namekdev/theconsole/scripts/JavaScriptExecutor.java)
+* `Utils` is placed in [JsUtilsProvider.java](core/src/net/namekdev/theconsole/scripts/JsUtilsProvider.java)
+* `console` is [ConsoleProxy.java](core/src/net/namekdev/theconsole/scripts/ConsoleProxy.java)
+* whole file script is lanched by [JsScriptManager.java#runScopedJs()](core/src/net/namekdev/theconsole/scripts/JsScriptManager.java)
+* Java->JavaScript bindings are made in [JsScriptManager#createJsEnvironment](core/src/net/namekdev/theconsole/scripts/JsScriptManager.java) [JavaScriptExecutor.java#ctor](core/src/net/namekdev/theconsole/scripts/JavaScriptExecutor.java)
 
 ### Script Storage
 
