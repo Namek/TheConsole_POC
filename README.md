@@ -1,5 +1,9 @@
 ## The Console
 
+### NEXT ITERATION
+
+This project will be no longer developed on this repo. Take a look at next iteration: [github.com/TheConsole](https://github.com/TheConsole) which is less hacky internally but doesn't look like Q3A anymore.
+
 ### What?
 
 Wide-usage JavaScript-able Console for Windows OS, currently looking and animating like the one in Quake 3 Arena game. Currently made with libgdx and Java 8.
