@@ -2,7 +2,7 @@
 
 ### NEXT ITERATION
 
-This project will be no longer developed on this repo. Take a look at next iteration: [github.com/TheConsole](https://github.com/TheConsole) which is less hacky internally but doesn't look like Q3A anymore.
+This project will be no longer developed on this repo. Take a look at next iteration: [github.com/Namek/TheConsole](https://github.com/Namek/TheConsole) which is less hacky internally but doesn't look like Q3A anymore.
 
 ### What?
 
